@@ -25,6 +25,7 @@ Two reconstructions can be computed by a FocusReconstructor class:
 - coarse - no fitting of the quadratic function. Used initially for testing and debugging, to use it one must recompile the code
 - fine (default option) - the depth of the image is computed fitting a quadratic function into the three points surrounding the highest scoring index.
 
+In its current version the application relies on OpenCV in loading and saving images. Also the default OpenCV container cv::Mat is used for storing and handling image data. Besides that, all image processing functions were implemented from scratch.
 
 
 
@@ -32,11 +33,11 @@ Two reconstructions can be computed by a FocusReconstructor class:
 
 Finally the following result was obtained:
 
-![](https://github.com/pkicman/FocusRecover/doc/reconstructed.png)
+![](doc/reconstructed.png)
 
 
 
-![](https://github.com/pkicman/FocusRecover/doc/depth_map.png)
+![](doc/depth_map.png)
 
 
 
