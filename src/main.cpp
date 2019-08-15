@@ -1,10 +1,11 @@
 #include <iostream>
 #include <string>
-#include <cstdlib>
 #include <vector>
-#include <opencv2/imgproc.hpp>
+#include <cstdlib>
+#include <opencv2/highgui.hpp>
 
 #include "InputData.h"
+#include "myMat.h"
 #include "utilities.h"
 #include "FocusReconstructor.h"
 
@@ -41,6 +42,7 @@ int main(int argc, char** argv)
 
 	std::cout << "Loading " << ID.getTotalFramesCount() << " images" << std::endl;
 	cv::Mat frame;
+	
 	while (ID.loadNextFrame())
 	{
 		// load the image and save for later processing		
@@ -49,11 +51,15 @@ int main(int argc, char** argv)
 	}
 
 	cv::Mat finalImg, depthMap;
+	myMat<uchar> myfinalImg;
+	myMat<float> mydepthMap;
 	FR.processInputs();
-	FR.reconstructFine(finalImg, depthMap);
+	FR.reconstructFine(myfinalImg, mydepthMap);
 
-	if (!finalImg.empty())
+	if (!myfinalImg.empty())
 	{
+		myfinalImg.toOpenCVMat8UC3(finalImg);
+		mydepthMap.toOpenCVMat32FC1(depthMap);
 		std::cout << "Processing completed" << std::endl;
 		cv::imwrite("reconstructed_img.png", finalImg);
 		cv::imwrite("depth_map.png", 255 * depthMap);

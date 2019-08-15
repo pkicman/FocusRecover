@@ -1,13 +1,13 @@
 #include "FocusReconstructor.h"
 
-void FocusReconstructor::preProcessImage(cv::Mat & inImg, cv::Mat & outImg)
+void FocusReconstructor::preProcessImage(myMat<uchar>& inImg, myMat<uchar>& outImg)
 {
-	cv::Mat gray;
+	myMat<uchar> gray;
 	convertToGray(inImg, gray);
 	applyGaussianBlur(gray, outImg, m_blur_kernel_size);
 }
 
-void FocusReconstructor::computeFocusScore(cv::Mat & inImg, cv::Mat & outImg)
+void FocusReconstructor::computeFocusScore(myMat<float>& inImg, myMat<float>& outImg)
 {
 	threshToZero(inImg, m_ml_threshold);
 	sumOverKernel(inImg, outImg, m_focus_kernel_size);
@@ -15,75 +15,77 @@ void FocusReconstructor::computeFocusScore(cv::Mat & inImg, cv::Mat & outImg)
 
 void FocusReconstructor::addImage(const cv::Mat & inImg)
 {
-	m_inContainer.push_back(inImg.clone());
+	m_inContainerNew.emplace_back(inImg);
 }
 
 void FocusReconstructor::processInputs()
-{
-	if (m_inContainer.empty()) return;
-	cv::Mat gray, modifiedLap, focusScore;
-	
-	for (auto &frame : m_inContainer)
+{	
+	if (m_inContainerNew.empty()) return;
+	myMat<uchar> mygray;
+	myMat<float> mymodifiedLap, myfocusScore;
+	for (auto &frame : m_inContainerNew)
 	{
-		preProcessImage(frame, gray);
-		computeModifiedLaplace(gray, modifiedLap);
-		computeFocusScore(modifiedLap, focusScore);
-		m_focusContainer.push_back(focusScore.clone());
+		preProcessImage(frame, mygray);
+		computeModifiedLaplace(mygray, mymodifiedLap);
+		computeFocusScore(mymodifiedLap, myfocusScore);
+		m_focusContainerNew.push_back(myfocusScore);
 	}
 }
 
-void FocusReconstructor::reconstructCoarse(cv::Mat & outImg, cv::Mat & depthMap)
+void FocusReconstructor::reconstructCoarse(myMat<uchar>& outImg, myMat<float>& depthMap)
 {
-	if (m_inContainer.empty()) return;
+	if (m_inContainerNew.empty()) return;
+	int nimg = m_focusContainerNew.size();
+	int nrows = m_focusContainerNew.back().nrows();
+	int ncols = m_focusContainerNew.back().ncols();
+
 	// Copy the furthest image as a default
-	m_inContainer.back().copyTo(outImg);
-	depthMap = cv::Mat::zeros(m_inContainer.back().size(), CV_32FC1);
+	outImg = m_inContainerNew.back();
+	depthMap = myMat<float>(nrows, ncols, 1);
+	depthMap.fill(0.0f);
 	std::vector<float> focus_score;
-	focus_score.reserve(m_focusContainer.size());
-	int nimg = m_focusContainer.size();
-	int nrows = m_focusContainer.back().rows;
-	int ncols = m_focusContainer.back().cols;
+	focus_score.reserve(nimg);
 
 	for (int i = 0; i < nrows; ++i)
 		for (int j = 0; j < ncols; ++j)
 		{
 			focus_score.clear();
 			for (int k = 0; k < nimg; ++k)
-			{				
-				focus_score.push_back(m_focusContainer[k].at<float>(i, j));
-			}
+				focus_score.push_back(m_focusContainerNew[k].at(i, j)[0]);
+
 			// find position of most focused image
 			int idx = std::distance(focus_score.begin(),
 				std::max_element(focus_score.begin(), focus_score.end()));
 			if (focus_score[idx] > m_focus_threshold)
 			{
-				outImg.at<cv::Vec3b>(i, j)[0] = m_inContainer[idx].at<cv::Vec3b>(i, j)[0];
-				outImg.at<cv::Vec3b>(i, j)[1] = m_inContainer[idx].at<cv::Vec3b>(i, j)[1];
-				outImg.at<cv::Vec3b>(i, j)[2] = m_inContainer[idx].at<cv::Vec3b>(i, j)[2];
-				depthMap.at<float>(i, j) = 1 - (float)idx / (float)nimg;
+				outImg.at(i, 3 * j)[0] = m_inContainerNew[idx].at(i, 3 * j)[0];
+				outImg.at(i, 3 * j)[1] = m_inContainerNew[idx].at(i, 3 * j)[1];
+				outImg.at(i, 3 * j)[2] = m_inContainerNew[idx].at(i, 3 * j)[2];
+				depthMap.at(i, j)[0] = 1 - (float)idx / (float)nimg;
 			}
 		}
 }
 
-void FocusReconstructor::reconstructFine(cv::Mat & outImg, cv::Mat & depthMap)
+void FocusReconstructor::reconstructFine(myMat<uchar>& outImg, myMat<float>& depthMap)
 {
-	if (m_inContainer.empty()) return;
-	// Copy the furthest image as a default
-	m_inContainer.back().copyTo(outImg);
-	depthMap = cv::Mat::zeros(m_inContainer.back().size(), CV_32FC1);
-	std::vector<float> focus_score;
-	focus_score.reserve(m_focusContainer.size());
-	int nimg = m_focusContainer.size();
-	int nrows = m_focusContainer.back().rows;
-	int ncols = m_focusContainer.back().cols;
+	if (m_inContainerNew.empty()) return;
+	int nimg = m_focusContainerNew.size();
+	int nrows = m_focusContainerNew.back().nrows();
+	int ncols = m_focusContainerNew.back().ncols();
 
-	int counter = 0;
+	// Copy the furthest image as a default
+	outImg = m_inContainerNew.back();
+	depthMap = myMat<float>(nrows, ncols, 1);
+	depthMap.fill(0.0f);
+	std::vector<float> focus_score;
+	focus_score.reserve(nimg);
+	
 	for (int i = 0; i < nrows; ++i)
 		for (int j = 0; j < ncols; ++j)
 		{
 			focus_score.clear();
 			for (int k = 0; k < nimg; ++k)
-				focus_score.push_back(m_focusContainer[k].at<float>(i, j));
+				focus_score.push_back(m_focusContainerNew[k].at(i, j)[0]);
 
 			// find position of most focused image
 			int idx = std::distance(focus_score.begin(),
@@ -104,18 +106,16 @@ void FocusReconstructor::reconstructFine(cv::Mat & outImg, cv::Mat & depthMap)
 						if (abs(a) > 0.0000000001) {
 							refined_result = true;
 							fine_idx = -b / (2 * a);
-							//std::cout << idx << " " << fine_idx << std::endl;
-							counter++;
 						}
 					}
 				}
-				outImg.at<cv::Vec3b>(i, j)[0] = m_inContainer[idx].at<cv::Vec3b>(i, j)[0];
-				outImg.at<cv::Vec3b>(i, j)[1] = m_inContainer[idx].at<cv::Vec3b>(i, j)[1];
-				outImg.at<cv::Vec3b>(i, j)[2] = m_inContainer[idx].at<cv::Vec3b>(i, j)[2];
+				outImg.at(i, 3*j)[0] = m_inContainerNew[idx].at(i, 3*j)[0];
+				outImg.at(i, 3*j)[1] = m_inContainerNew[idx].at(i, 3*j)[1];
+				outImg.at(i, 3*j)[2] = m_inContainerNew[idx].at(i, 3*j)[2];
 				if (refined_result)
-					depthMap.at<float>(i, j) = 1 - fine_idx / (float)nimg;
+					depthMap.at(i, j)[0] = 1 - fine_idx / (float)nimg;
 				else
-					depthMap.at<float>(i, j) = 1 - (float)idx / (float)nimg;
+					depthMap.at(i, j)[0] = 1 - (float)idx / (float)nimg;
 			}
 		}
 }

@@ -3,17 +3,17 @@
 #include <iostream>
 #include <vector>
 #include <array>
-#include <opencv2/imgproc.hpp>
+#include "myMat.h"
 
 void fitQuadratic(float x1, float y1, float x2, float y2, float x3, float y3, float &a, float &b, float &c);
 
-void threshToZero(cv::Mat &inImg, const float threshold);
+void threshToZero(myMat<float> &inImg, const float threshold);
 
-void convertToGray(const cv::Mat &inImg, cv::Mat &outImg);
+void convertToGray(const myMat<uchar> &inImg, myMat<uchar> &outImg);
 
-void applyGaussianBlur(const cv::Mat &inImg, cv::Mat &outImg, const unsigned int kernel_size);
+void applyGaussianBlur(const myMat<uchar> &inImg, myMat<uchar> &outImg, const unsigned int kernel_size);
 
-void sumOverKernel(cv::Mat &inImg, cv::Mat &outImg, const unsigned int kernel_size);
+void sumOverKernel(myMat<float> &inImg, myMat<float> &outImg, const unsigned int kernel_size);
 
-void computeModifiedLaplace(const cv::Mat &inImg, cv::Mat &lap);
+void computeModifiedLaplace(const myMat<uchar> &inImg, myMat<float> &lap);
 

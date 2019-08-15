@@ -25,7 +25,7 @@ Two reconstructions can be computed by a FocusReconstructor class:
 - coarse - no fitting of the quadratic function. Used initially for testing and debugging, to use it one must recompile the code
 - fine (default option) - the depth of the image is computed fitting a quadratic function into the three points surrounding the highest scoring index.
 
-In its current version the application relies on OpenCV in loading and saving images. Also the default OpenCV container cv::Mat is used for storing and handling image data. Besides that, all image processing functions were implemented from scratch.
+The application relies on OpenCV only for loading and saving and displaying images. Internally, the images are handled by a simple ```myMat``` class. Besides that, all image processing functions were implemented from scratch.
 
 
 

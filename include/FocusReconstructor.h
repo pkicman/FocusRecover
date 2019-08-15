@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
-#include <opencv2/imgproc.hpp>
+#include <opencv2/core.hpp>
+
+#include "myMat.h"
 #include "utilities.h"
 
 class FocusReconstructor {
@@ -10,10 +12,11 @@ private:
 	unsigned int m_focus_kernel_size;
 	float m_ml_threshold;
 	float m_focus_threshold;
-	std::vector<cv::Mat> m_inContainer, m_focusContainer;
+	std::vector< myMat<uchar> > m_inContainerNew;
+	std::vector< myMat<float> > m_focusContainerNew;
 
-	void preProcessImage(cv::Mat &inImg, cv::Mat &outImg);
-	void computeFocusScore(cv::Mat &inImg, cv::Mat &outImg);
+	void preProcessImage(myMat<uchar> &inImg, myMat<uchar> &outImg);
+	void computeFocusScore(myMat<float> &inImg, myMat<float> &outImg);
 
 public:
 	FocusReconstructor(unsigned int bks, unsigned int fks, float mlt, float ft) :
@@ -22,6 +25,6 @@ public:
 
 	void addImage(const cv::Mat &inImg);
 	void processInputs();
-	void reconstructCoarse(cv::Mat &outImg, cv::Mat &depthMap);
-	void reconstructFine(cv::Mat &outImg, cv::Mat &depthMap);
+	void reconstructCoarse(myMat<uchar> &outImg, myMat<float> &depthMap);
+	void reconstructFine(myMat<uchar> &outImg, myMat<float> &depthMap);
 };
