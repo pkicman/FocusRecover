@@ -15,10 +15,10 @@ void threshToZero(myMat<float>& inImg, const float threshold)
 	// set (in-place) to zero every pixel whose value is below threshold
 
 	float *p;
-	for (int i = 0; i < inImg.nrows(); ++i)
+	for (uint i = 0; i < inImg.nrows(); ++i)
 	{
 		p = inImg.rowPtr(i);
-		for (int j = 0; j < inImg.ncols(); ++j)
+		for (uint j = 0; j < inImg.ncols(); ++j)
 			if (p[j] < threshold) p[j] = 0.0f;
 	}
 }
@@ -35,11 +35,11 @@ void convertToGray(const myMat<uchar> &inImg, myMat<uchar> &outImg)
 
 	uchar *out;
 	const uchar *in;
-	for (int i = 0; i < inImg.nrows(); ++i)
+	for (uint i = 0; i < inImg.nrows(); ++i)
 	{
 		out = outImg.rowPtr(i);
 		in = inImg.rowPtr(i);
-		for (int j = 0; j < inImg.ncols(); ++j)
+		for (uint j = 0; j < inImg.ncols(); ++j)
 		{
 			out[j] = (uchar)(0.114*(float)in[j*3] + 0.587*(float)in[j*3+1] + 0.299*(float)in[j*3+2]);
 		}
@@ -269,7 +269,7 @@ void computeModifiedLaplace(const myMat<uchar>& inImg, myMat<float>& lap)
 	r = inImg.rowPtr(0);
 	r_plus = inImg.rowPtr(1);
 	l = lap.rowPtr(0);
-	for (int y = 1; y < inImg.ncols() - 1; ++y)
+	for (uint y = 1; y < inImg.ncols() - 1; ++y)
 		l[y] = abs(2 * (float)r[y] - (float)r[y - 1] - (float)r[y + 1]) +
 		abs(2 * (float)r[y] - 2 * (float)r_plus[y]);
 
@@ -277,18 +277,18 @@ void computeModifiedLaplace(const myMat<uchar>& inImg, myMat<float>& lap)
 	r = inImg.rowPtr(inImg.nrows() - 1);
 	r_minus = inImg.rowPtr(inImg.nrows() - 2);
 	l = lap.rowPtr(lap.nrows() - 1);
-	for (int y = 1; y < inImg.ncols() - 1; ++y)
+	for (uint y = 1; y < inImg.ncols() - 1; ++y)
 		l[y] = abs(2 * (float)r[y] - (float)r[y - 1] - (float)r[y + 1]) +
 		abs(2 * (float)r[y] - 2 * (float)r_minus[y]);
 
 	// Loop over the main body
-	for (int x = 1; x < inImg.nrows() - 1; ++x)
+	for (uint x = 1; x < inImg.nrows() - 1; ++x)
 	{
 		l = lap.rowPtr(x);
 		r = inImg.rowPtr(x);
 		r_minus = inImg.rowPtr(x - 1);
 		r_plus = inImg.rowPtr(x + 1);
-		for (int y = 1; y < inImg.ncols() - 1; ++y)
+		for (uint y = 1; y < inImg.ncols() - 1; ++y)
 		{
 			l[y] = abs(2 * (float)r[y] - (float)r_minus[y] - (float)r_plus[y]) +
 				abs(2 * (float)r[y] - (float)r[y - 1] - (float)r[y + 1]);
