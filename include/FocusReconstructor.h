@@ -12,8 +12,8 @@ private:
 	unsigned int m_focus_kernel_size;
 	float m_ml_threshold;
 	float m_focus_threshold;
-	std::vector< myMat<uchar> > m_inContainerNew;
-	std::vector< myMat<float> > m_focusContainerNew;
+	std::vector< myMat<uchar> > m_inContainer;
+	std::vector< myMat<float> > m_focusContainer;
 
 	void preProcessImage(myMat<uchar> &inImg, myMat<uchar> &outImg);
 	void computeFocusScore(myMat<float> &inImg, myMat<float> &outImg);
@@ -23,7 +23,7 @@ public:
 		m_blur_kernel_size(bks), m_focus_kernel_size(fks),
 		m_ml_threshold(mlt), m_focus_threshold(ft) 
 	{
-		m_inContainerNew.reserve(n_frames);
+		m_inContainer.reserve(n_frames);
 	};
 
 	void addImage(const cv::Mat &inImg);

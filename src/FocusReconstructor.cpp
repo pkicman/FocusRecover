@@ -15,34 +15,34 @@ void FocusReconstructor::computeFocusScore(myMat<float>& inImg, myMat<float>& ou
 
 void FocusReconstructor::addImage(const cv::Mat & inImg)
 {
-	m_inContainerNew.emplace_back(inImg);
+	m_inContainer.emplace_back(inImg);
 }
 
 void FocusReconstructor::processInputs()
 {	
-	if (m_inContainerNew.empty()) return;
-	m_focusContainerNew.reserve(m_inContainerNew.size());
-	myMat<uchar> mygray;
-	myMat<float> mymodifiedLap, myfocusScore;
+	if (m_inContainer.empty()) return;
+	m_focusContainer.reserve(m_inContainer.size());
+	myMat<uchar> gray;
+	myMat<float> modifiedLap, focusScore;
 	
-	for (auto &frame : m_inContainerNew)
+	for (auto &frame : m_inContainer)
 	{
-		preProcessImage(frame, mygray);
-		computeModifiedLaplace(mygray, mymodifiedLap);
-		computeFocusScore(mymodifiedLap, myfocusScore);
-		m_focusContainerNew.push_back(myfocusScore);
+		preProcessImage(frame, gray);
+		computeModifiedLaplace(gray, modifiedLap);
+		computeFocusScore(modifiedLap, focusScore);
+		m_focusContainer.push_back(focusScore);
 	}
 }
 
 void FocusReconstructor::reconstructCoarse(myMat<uchar>& outImg, myMat<float>& depthMap)
 {
-	if (m_inContainerNew.empty()) return;
-	int nimg = m_focusContainerNew.size();
-	int nrows = m_focusContainerNew.back().nrows();
-	int ncols = m_focusContainerNew.back().ncols();
+	if (m_inContainer.empty()) return;
+	int nimg = m_focusContainer.size();
+	int nrows = m_focusContainer.back().nrows();
+	int ncols = m_focusContainer.back().ncols();
 
 	// Copy the furthest image as a default
-	outImg = m_inContainerNew.back();
+	outImg = m_inContainer.back();
 	depthMap = myMat<float>(nrows, ncols, 1);
 	depthMap.fill(0.0f);
 	std::vector<float> focus_score;
@@ -53,16 +53,16 @@ void FocusReconstructor::reconstructCoarse(myMat<uchar>& outImg, myMat<float>& d
 		{
 			focus_score.clear();
 			for (int k = 0; k < nimg; ++k)
-				focus_score.push_back(m_focusContainerNew[k].at(i, j)[0]);
+				focus_score.push_back(m_focusContainer[k].at(i, j)[0]);
 
 			// find position of most focused image
 			int idx = std::distance(focus_score.begin(),
 				std::max_element(focus_score.begin(), focus_score.end()));
 			if (focus_score[idx] > m_focus_threshold)
 			{
-				outImg.at(i, 3 * j)[0] = m_inContainerNew[idx].at(i, 3 * j)[0];
-				outImg.at(i, 3 * j)[1] = m_inContainerNew[idx].at(i, 3 * j)[1];
-				outImg.at(i, 3 * j)[2] = m_inContainerNew[idx].at(i, 3 * j)[2];
+				outImg.at(i, 3 * j)[0] = m_inContainer[idx].at(i, 3 * j)[0];
+				outImg.at(i, 3 * j)[1] = m_inContainer[idx].at(i, 3 * j)[1];
+				outImg.at(i, 3 * j)[2] = m_inContainer[idx].at(i, 3 * j)[2];
 				depthMap.at(i, j)[0] = 1 - (float)idx / (float)nimg;
 			}
 		}
@@ -70,13 +70,13 @@ void FocusReconstructor::reconstructCoarse(myMat<uchar>& outImg, myMat<float>& d
 
 void FocusReconstructor::reconstructFine(myMat<uchar>& outImg, myMat<float>& depthMap)
 {
-	if (m_inContainerNew.empty()) return;
-	int nimg = m_focusContainerNew.size();
-	int nrows = m_focusContainerNew.back().nrows();
-	int ncols = m_focusContainerNew.back().ncols();
+	if (m_inContainer.empty()) return;
+	int nimg = m_focusContainer.size();
+	int nrows = m_focusContainer.back().nrows();
+	int ncols = m_focusContainer.back().ncols();
 
 	// Copy the furthest image as a default
-	outImg = m_inContainerNew.back();
+	outImg = m_inContainer.back();
 	depthMap = myMat<float>(nrows, ncols, 1);
 	depthMap.fill(0.0f);
 	std::vector<float> focus_score;
@@ -87,7 +87,7 @@ void FocusReconstructor::reconstructFine(myMat<uchar>& outImg, myMat<float>& dep
 		{
 			focus_score.clear();
 			for (int k = 0; k < nimg; ++k)
-				focus_score.push_back(m_focusContainerNew[k].at(i, j)[0]);
+				focus_score.push_back(m_focusContainer[k].at(i, j)[0]);
 
 			// find position of most focused image
 			int idx = std::distance(focus_score.begin(),
@@ -111,9 +111,9 @@ void FocusReconstructor::reconstructFine(myMat<uchar>& outImg, myMat<float>& dep
 						}
 					}
 				}
-				outImg.at(i, 3*j)[0] = m_inContainerNew[idx].at(i, 3*j)[0];
-				outImg.at(i, 3*j)[1] = m_inContainerNew[idx].at(i, 3*j)[1];
-				outImg.at(i, 3*j)[2] = m_inContainerNew[idx].at(i, 3*j)[2];
+				outImg.at(i, 3*j)[0] = m_inContainer[idx].at(i, 3*j)[0];
+				outImg.at(i, 3*j)[1] = m_inContainer[idx].at(i, 3*j)[1];
+				outImg.at(i, 3*j)[2] = m_inContainer[idx].at(i, 3*j)[2];
 				if (refined_result)
 					depthMap.at(i, j)[0] = 1 - fine_idx / (float)nimg;
 				else
