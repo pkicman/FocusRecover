@@ -44,7 +44,10 @@ public:
 	}
 
 	// Construct myMat directly from an OpenCV Mat
-	myMat(const cv::Mat &inMat) { fromOpenCVMat(inMat); }
+	myMat(const cv::Mat &inMat) : m_nrows(0), m_ncols(0), m_nchannels(0), m_data(nullptr)
+	{ 
+		fromOpenCVMat(inMat); 
+	}
 
 	// destructor
 	~myMat() {	delete[] m_data; }
@@ -102,18 +105,18 @@ void myMat<T>::fromOpenCVMat(const cv::Mat &inMat) {
 	// if allocated and same size - do not allocate
 	// if not allocated - allocate
 	// if allocated but incompatible size - free the memory and reallocate
-	//if (m_data != nullptr)
-	//{
-	//	if (m_nrows != inMat.rows || m_ncols != inMat.cols || m_nchannels != inMat.channels())
-	//	{
-	//		delete[] m_data;
-	//		init(inMat.rows, inMat.cols, inMat.channels());
-	//	}
-	//}
-	//else
-	//{
+	if (m_data != nullptr)
+	{
+		if (m_nrows != inMat.rows || m_ncols != inMat.cols || m_nchannels != inMat.channels())
+		{
+			delete[] m_data;
+			init(inMat.rows, inMat.cols, inMat.channels());
+		}
+	}
+	else
+	{
 		init(inMat.rows, inMat.cols, inMat.channels());
-	//}
+	}
 
 	// copy all matrix elements
 	if (m_nchannels == 1)
