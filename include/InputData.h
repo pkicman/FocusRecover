@@ -25,7 +25,7 @@ public:
 	/// Load next frame from the stream
 	bool loadNextFrame();
 
-	int getTotalFramesCount() const { return _img_filenames.size(); };
+	unsigned int getTotalFramesCount() const { return (unsigned int)_img_filenames.size(); };
 
 	bool isFrameAvailable() const { return _frame_available; };
 

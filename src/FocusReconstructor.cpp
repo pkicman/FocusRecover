@@ -21,8 +21,10 @@ void FocusReconstructor::addImage(const cv::Mat & inImg)
 void FocusReconstructor::processInputs()
 {	
 	if (m_inContainerNew.empty()) return;
+	m_focusContainerNew.reserve(m_inContainerNew.size());
 	myMat<uchar> mygray;
 	myMat<float> mymodifiedLap, myfocusScore;
+	
 	for (auto &frame : m_inContainerNew)
 	{
 		preProcessImage(frame, mygray);

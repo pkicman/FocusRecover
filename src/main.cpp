@@ -38,7 +38,7 @@ int main(int argc, char** argv)
 	
 	// Create object that contains the implemented algorithm
 	FocusReconstructor FR = FocusReconstructor(blur_kernel_size, focus_kernel_size,
-		ml_threshold, focus_threshold);
+		ml_threshold, focus_threshold, ID.getTotalFramesCount());
 
 	std::cout << "Loading " << ID.getTotalFramesCount() << " images" << std::endl;
 	cv::Mat frame;

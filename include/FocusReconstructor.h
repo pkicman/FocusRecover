@@ -19,9 +19,12 @@ private:
 	void computeFocusScore(myMat<float> &inImg, myMat<float> &outImg);
 
 public:
-	FocusReconstructor(unsigned int bks, unsigned int fks, float mlt, float ft) :
+	FocusReconstructor(unsigned int bks, unsigned int fks, float mlt, float ft, unsigned int n_frames) :
 		m_blur_kernel_size(bks), m_focus_kernel_size(fks),
-		m_ml_threshold(mlt), m_focus_threshold(ft) {};
+		m_ml_threshold(mlt), m_focus_threshold(ft) 
+	{
+		m_inContainerNew.reserve(n_frames);
+	};
 
 	void addImage(const cv::Mat &inImg);
 	void processInputs();
